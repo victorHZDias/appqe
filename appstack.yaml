@@ -2,16 +2,13 @@ version: '3.8'
 
 services:
   appqe:
-    image: vhzdias/aplicationqe:latest
-    environment:
-      # As variáveis de ambiente serão fornecidas no momento do deploy
-      - DB_URL=${DB_URL}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - ID_PROJECT_GEMINI=${ID_PROJECT_GEMINI}
-      - MODEL_IA=${MODEL_IA}
-      - API_KEY_ASSEMBLYAI=${API_KEY_ASSEMBLYAI}
-      - API_KEY_APP=${API_KEY_APP}
+    # A imagem será construída a partir do Dockerfile no mesmo diretório
+    build: .
+    # O nome da imagem a ser criada após o build e usada pelo Swarm
+    image: aplicationqe
+    # Carrega as variáveis do arquivo .env
+    env_file:
+      - .env
     networks:
       - traefik-public
     deploy:
@@ -24,6 +21,12 @@ services:
         - "traefik.http.routers.appqe_web.tls=true"
         - "traefik.http.routers.appqe_web.service=appqe_web"
         - "traefik.http.services.appqe_web.loadbalancer.server.port=8080"
+
+        # --- Adicionado para o middleware ---
+        # Define um middleware chamado 'appqe-headers' que adiciona o cabeçalho X-Forwarded-Proto
+        - "traefik.http.middlewares.appqe-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+        # Aplica o middleware definido acima a este roteador
+        - "traefik.http.routers.appqe_web.middlewares=appqe-headers"
 
 networks:
   traefik-public:
