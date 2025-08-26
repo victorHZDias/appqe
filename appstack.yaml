@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  appqe:
+    image: vhzdias/aplicationqe:latest
+    environment:
+      # As variáveis de ambiente serão fornecidas no momento do deploy
+      - DB_URL=${DB_URL}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - ID_PROJECT_GEMINI=${ID_PROJECT_GEMINI}
+      - MODEL_IA=${MODEL_IA}
+      - API_KEY_ASSEMBLYAI=${API_KEY_ASSEMBLYAI}
+      - API_KEY_APP=${API_KEY_APP}
+    networks:
+      - traefik-public
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.appqe_web.rule=Host(`api.qualityexcellence.com.br`)"
+        - "traefik.http.routers.appqe_web.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.appqe_web.entrypoints=websecure"
+        - "traefik.http.routers.appqe_web.tls=true"
+        - "traefik.http.routers.appqe_web.service=appqe_web"
+        - "traefik.http.services.appqe_web.loadbalancer.server.port=8080"
+
+networks:
+  traefik-public:
+    external: true
